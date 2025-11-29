@@ -34,24 +34,25 @@ jobs:
         python3.12 -m pip install --upgrade pip
         python3.12 -m pip install nuitka PyQt6 requests urllib3
     
-    - name: Obfuscate code (optional - skip if errors)
+    - name: Obfuscate code (disabled - skip to avoid syntax errors)
       run: |
-        if [ -f "obfuscate.py" ]; then
-          echo "Obfuscating code..."
-          if python3.12 obfuscate.py run_server.py run_server_obfuscated.py; then
-            echo "Obfuscation successful"
-            # Verify obfuscated file is valid Python
-            if python3.12 -m py_compile run_server_obfuscated.py 2>/dev/null; then
-              echo "Obfuscated file is valid"
-            else
-              echo "Obfuscated file has syntax errors, using original"
-              rm -f run_server_obfuscated.py
-            fi
-          else
-            echo "Obfuscation failed, using original"
-            rm -f run_server_obfuscated.py
-          fi
-        fi
+        echo "Skipping obfuscation to avoid syntax errors"
+        echo "Using original run_server.py for build"
+        # Obfuscation disabled due to syntax errors
+        # if [ -f "obfuscate.py" ]; then
+        #   echo "Obfuscating code..."
+        #   if python3.12 obfuscate.py run_server.py run_server_obfuscated.py; then
+        #     if python3.12 -m py_compile run_server_obfuscated.py 2>/dev/null; then
+        #       echo "Obfuscated file is valid"
+        #     else
+        #       echo "Obfuscated file has syntax errors, using original"
+        #       rm -f run_server_obfuscated.py
+        #     fi
+        #   else
+        #     echo "Obfuscation failed, using original"
+        #     rm -f run_server_obfuscated.py
+        #   fi
+        # fi
     
     - name: Build with Nuitka
       run: |

@@ -46,10 +46,16 @@ if ! python3.12 -m pip show requests &> /dev/null; then
     python3.12 -m pip install requests urllib3
 fi
 
-# Kiểm tra file input
+# Kiểm tra file input - Skip obfuscated file if it has syntax errors
 if [ -f "run_server_obfuscated.py" ]; then
-    echo "[*] Using obfuscated file: run_server_obfuscated.py"
-    INPUT_FILE="run_server_obfuscated.py"
+    # Verify obfuscated file is valid Python
+    if python3.12 -m py_compile run_server_obfuscated.py 2>/dev/null; then
+        echo "[*] Using obfuscated file: run_server_obfuscated.py"
+        INPUT_FILE="run_server_obfuscated.py"
+    else
+        echo "[!] Obfuscated file has syntax errors, using original"
+        INPUT_FILE="run_server.py"
+    fi
 else
     echo "[*] Using original file: run_server.py"
     INPUT_FILE="run_server.py"
