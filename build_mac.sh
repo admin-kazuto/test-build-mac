@@ -74,6 +74,7 @@ python3.12 -m nuitka \
     --assume-yes-for-downloads \
     --enable-plugin=pyqt6 \
     --include-package-data=PyQt6 \
+    --include-qt-plugins=qml \
     --nofollow-import-to=test,tests,unittest \
     --python-flag=-O \
     --python-flag=-OO \
