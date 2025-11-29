@@ -1,0 +1,31 @@
+==========================================
+YÊU CẦU ĐỂ CHẠY KURO STUDIO
+==========================================
+
+1. FILE CẦN THIẾT:
+   - KuroStudio.exe (file chính - đã có tất cả dependencies)
+   - ffmpeg.exe (chỉ cần nếu dùng tính năng ghép video)
+
+2. FILE CŨ:
+   - KHÔNG CẦN xóa file cũ thủ công
+   - Build mới sẽ TỰ ĐỘNG ghi đè lên file cũ
+   - Nếu file đang chạy, đóng nó trước khi build
+
+3. CÁCH CHẠY:
+   - Chỉ cần double-click: KuroStudio.exe
+   - Không cần Python
+   - Không cần cài đặt gì thêm
+   - File đã được compile thành native code
+
+4. FFMPEG (Tùy chọn):
+   - Nếu dùng tính năng ghép video, cần ffmpeg.exe
+   - Đặt ffmpeg.exe cùng thư mục với KuroStudio.exe
+   - Hoặc đặt trong thư mục con "ffmpeg"
+   - Hoặc cài đặt ffmpeg vào PATH system
+
+5. CẤU TRÚC THƯ MỤC ĐỀ XUẤT:
+   dist/
+     ├── KuroStudio.exe  (file chính)
+     └── ffmpeg.exe      (nếu cần ghép video)
+
+==========================================

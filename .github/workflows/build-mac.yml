@@ -1,0 +1,63 @@
+name: Build macOS App
+
+on:
+  workflow_dispatch:  # Cho phép chạy thủ công
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'run_server.py'
+      - 'build_mac.sh'
+      - '.github/workflows/build-mac.yml'
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: Install Xcode Command Line Tools
+      run: |
+        xcode-select --install || true
+        sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer || true
+    
+    - name: Install dependencies
+      run: |
+        python3.12 -m pip install --upgrade pip
+        python3.12 -m pip install nuitka PyQt6 requests urllib3
+    
+    - name: Obfuscate code (optional)
+      run: |
+        if [ -f "obfuscate.py" ]; then
+          echo "Obfuscating code..."
+          python3.12 obfuscate.py run_server.py run_server_obfuscated.py || echo "Obfuscation failed, using original"
+        fi
+    
+    - name: Build with Nuitka
+      run: |
+        chmod +x build_mac.sh
+        ./build_mac.sh
+    
+    - name: Create .app bundle
+      run: |
+        if [ -f "create_mac_app.sh" ]; then
+          chmod +x create_mac_app.sh
+          ./create_mac_app.sh
+        fi
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: KuroStudio-macOS
+        path: |
+          dist/KuroStudio
+          dist/KuroStudio.app
+        retention-days: 30

@@ -1,0 +1,73 @@
+# Build outputs
+dist/
+build/
+*.spec.bak
+kurostudio_build.spec
+
+# Obfuscated code
+obfuscated/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+
+# Virtual environment
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# PyInstaller
+*.manifest
+*.spec.bak
+
+# PyArmor
+.pyarmor_cache/
+*.lic
+
+# Nuitka
+build_nuitka/
+*.build/
+*.onefile-build/
+*.dist/
+nuitka-crash-report.xml
+
+# Obfuscated files (optional - uncomment if you don't want to commit)
+# run_server_obfuscated.py
+
+# Mac specific
+*.app/Contents/MacOS/
+*.dmg
+
+# Extracted files (PyInstaller/Nuitka)
+KuroStudio.exe_extracted/
+*.exe_extracted/
+*.extracted/
+
+# Large binary files
+ffmpeg.exe
+ffmpeg
+*.exe
+dist/*.exe
+dist/*.app
