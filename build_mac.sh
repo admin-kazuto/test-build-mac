@@ -36,9 +36,9 @@ if ! python3.12 -m pip show nuitka &> /dev/null; then
     python3.12 -m pip install nuitka
 fi
 
-if ! python3.12 -m pip show PyQt6 &> /dev/null; then
-    echo "[*] Installing PyQt6..."
-    python3.12 -m pip install PyQt6
+if ! python3.12 -m pip show PySide6 &> /dev/null; then
+    echo "[*] Installing PySide6..."
+    python3.12 -m pip install PySide6
 fi
 
 if ! python3.12 -m pip show requests &> /dev/null; then
@@ -46,19 +46,36 @@ if ! python3.12 -m pip show requests &> /dev/null; then
     python3.12 -m pip install requests urllib3
 fi
 
-# Kiểm tra file input - Skip obfuscated file if it has syntax errors
-if [ -f "run_server_obfuscated.py" ]; then
+# Kiểm tra file input - Ưu tiên PySide6 version cho macOS
+if [ -f "run_server_pyside6.py" ]; then
+    echo "[*] Using PySide6 version: run_server_pyside6.py"
+    INPUT_FILE="run_server_pyside6.py"
+elif [ -f "run_server_obfuscated.py" ]; then
     # Verify obfuscated file is valid Python
     if python3.12 -m py_compile run_server_obfuscated.py 2>/dev/null; then
         echo "[*] Using obfuscated file: run_server_obfuscated.py"
         INPUT_FILE="run_server_obfuscated.py"
     else
-        echo "[!] Obfuscated file has syntax errors, using original"
-        INPUT_FILE="run_server.py"
+        echo "[!] Obfuscated file has syntax errors, converting PyQt6 to PySide6"
+        if [ -f "convert_pyqt6_to_pyside6.py" ]; then
+            python3.12 convert_pyqt6_to_pyside6.py run_server.py run_server_pyside6.py
+            INPUT_FILE="run_server_pyside6.py"
+        else
+            echo "[!] Using original file (may fail on macOS with PyQt6)"
+            INPUT_FILE="run_server.py"
+        fi
     fi
 else
-    echo "[*] Using original file: run_server.py"
-    INPUT_FILE="run_server.py"
+    # Convert PyQt6 to PySide6 if converter exists
+    if [ -f "convert_pyqt6_to_pyside6.py" ]; then
+        echo "[*] Converting PyQt6 to PySide6 for macOS..."
+        python3.12 convert_pyqt6_to_pyside6.py run_server.py run_server_pyside6.py
+        INPUT_FILE="run_server_pyside6.py"
+    else
+        echo "[*] Using original file: run_server.py"
+        echo "[!] Warning: PyQt6 not supported on macOS, build may fail"
+        INPUT_FILE="run_server.py"
+    fi
 fi
 
 # Tạo thư mục dist
@@ -78,8 +95,8 @@ python3.12 -m nuitka \
     --output-dir=dist \
     --output-filename=KuroStudio \
     --assume-yes-for-downloads \
-    --enable-plugin=pyqt6 \
-    --include-package-data=PyQt6 \
+    --enable-plugin=pyside6 \
+    --include-package-data=PySide6 \
     --include-qt-plugins=qml \
     --nofollow-import-to=test,tests,unittest \
     --python-flag=-O \

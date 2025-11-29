@@ -32,27 +32,26 @@ jobs:
     - name: Install dependencies
       run: |
         python3.12 -m pip install --upgrade pip
-        python3.12 -m pip install nuitka PyQt6 requests urllib3
+        python3.12 -m pip install nuitka PySide6 requests urllib3
     
-    - name: Obfuscate code (disabled - skip to avoid syntax errors)
+    - name: Convert PyQt6 to PySide6 (required for macOS)
       run: |
-        echo "Skipping obfuscation to avoid syntax errors"
-        echo "Using original run_server.py for build"
-        # Obfuscation disabled due to syntax errors
-        # if [ -f "obfuscate.py" ]; then
-        #   echo "Obfuscating code..."
-        #   if python3.12 obfuscate.py run_server.py run_server_obfuscated.py; then
-        #     if python3.12 -m py_compile run_server_obfuscated.py 2>/dev/null; then
-        #       echo "Obfuscated file is valid"
-        #     else
-        #       echo "Obfuscated file has syntax errors, using original"
-        #       rm -f run_server_obfuscated.py
-        #     fi
-        #   else
-        #     echo "Obfuscation failed, using original"
-        #     rm -f run_server_obfuscated.py
-        #   fi
-        # fi
+        echo "Converting PyQt6 to PySide6 for macOS compatibility..."
+        if [ -f "convert_pyqt6_to_pyside6.py" ]; then
+          python3.12 convert_pyqt6_to_pyside6.py run_server.py run_server_pyside6.py
+          echo "Conversion successful"
+        else
+          echo "[!] Warning: convert_pyqt6_to_pyside6.py not found"
+          echo "Creating basic conversion..."
+          sed 's/PyQt6/PySide6/g; s/pyqtSignal/Signal/g' run_server.py > run_server_pyside6.py
+        fi
+        # Verify converted file
+        if python3.12 -m py_compile run_server_pyside6.py 2>/dev/null; then
+          echo "Converted file is valid"
+        else
+          echo "[!] Error: Converted file has syntax errors"
+          exit 1
+        fi
     
     - name: Build with Nuitka
       run: |
