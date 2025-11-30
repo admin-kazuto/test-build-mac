@@ -73,3 +73,73 @@ jobs:
           dist/KuroStudio
           dist/KuroStudio.app
         retention-days: 30
+    
+    - name: Upload to Google Drive (optional)
+      if: secrets.GDRIVE_SERVICE_ACCOUNT != ''
+      env:
+        GDRIVE_SERVICE_ACCOUNT: ${{ secrets.GDRIVE_SERVICE_ACCOUNT }}
+        GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+      run: |
+        echo "Uploading to Google Drive..."
+        python3.12 -m pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+        
+        python3.12 << 'PYTHON_SCRIPT'
+        import os
+        import json
+        import zipfile
+        import sys
+        from datetime import datetime
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+        from googleapiclient.http import MediaFileUpload
+        
+        # Get credentials
+        service_account_json = os.environ.get('GDRIVE_SERVICE_ACCOUNT', '')
+        if not service_account_json:
+            print("GDRIVE_SERVICE_ACCOUNT not set, skipping upload")
+            sys.exit(0)
+        
+        try:
+            service_account_info = json.loads(service_account_json)
+        except:
+            print("Invalid GDRIVE_SERVICE_ACCOUNT JSON, skipping upload")
+            sys.exit(0)
+        
+        # Authenticate
+        credentials = service_account.Credentials.from_service_account_info(
+            service_account_info,
+            scopes=['https://www.googleapis.com/auth/drive.file']
+        )
+        service = build('drive', 'v3', credentials=credentials)
+        
+        # Create zip file
+        timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+        zip_filename = f'KuroStudio-macOS-{timestamp}.zip'
+        
+        with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            if os.path.exists('dist/KuroStudio'):
+                zipf.write('dist/KuroStudio', 'KuroStudio')
+            if os.path.exists('dist/KuroStudio.app'):
+                # Add .app bundle recursively
+                for root, dirs, files in os.walk('dist/KuroStudio.app'):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        arcname = os.path.relpath(file_path, 'dist')
+                        zipf.write(file_path, arcname)
+        
+        # Upload to Google Drive
+        folder_id = os.environ.get('GDRIVE_FOLDER_ID', '')
+        
+        file_metadata = {
+            'name': zip_filename,
+        }
+        if folder_id:
+            file_metadata['parents'] = [folder_id]
+        
+        media = MediaFileUpload(zip_filename, mimetype='application/zip', resumable=True)
+        file = service.files().create(body=file_metadata, media_body=media, fields='id,webViewLink').execute()
+        
+        print(f"✅ Uploaded to Google Drive!")
+        print(f"📦 File ID: {file.get('id')}")
+        print(f"🔗 Share link: {file.get('webViewLink')}")
+        PYTHON_SCRIPT
